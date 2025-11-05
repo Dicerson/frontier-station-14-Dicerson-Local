@@ -142,20 +142,21 @@ public sealed class SingularitySystem : SharedSingularitySystem
     /// <param name="singularity">The state of the singularity to adjust the energy of.</param>
     public void UpdateEnergyDrain(EntityUid uid, SingularityComponent? singularity = null)
     {
-        if(!Resolve(uid, ref singularity))
-            return;
-        var newValue = Math.Clamp(singularity.Energy/60, 1, 20);
-        if(singularity.Energy > 2000)
+        if (Resolve(uid, ref singularity))
         {
-            newValue = 0;
+            var newValue = Math.Clamp(singularity.Energy / 60, 1, 20);
+            if (singularity.Energy > 2000)
+            {
+                newValue = 0;
+            }
+            singularity.EnergyDrain = newValue;
         }
-        singularity.EnergyDrain = newValue;
     }
 
 
-#endregion Getters/Setters
+    #endregion Getters/Setters
 
-#region Event Handlers
+    #region Event Handlers
 
     /// <summary>
     /// Handles playing the startup sounds when a singulo forms.
