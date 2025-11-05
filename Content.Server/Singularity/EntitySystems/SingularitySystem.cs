@@ -46,7 +46,6 @@ public sealed class SingularitySystem : SharedSingularitySystem
         SubscribeLocalEvent<SinguloFoodComponent, EventHorizonConsumedEntityEvent>(OnConsumed);
         SubscribeLocalEvent<SingularityComponent, EntityConsumedByEventHorizonEvent>(OnConsumedEntity);
         SubscribeLocalEvent<SingularityComponent, TilesConsumedByEventHorizonEvent>(OnConsumedTiles);
-        SubscribeLocalEvent<SingularityComponent, SingularityLevelChangedEvent>(UpdateEnergyDrain);
         SubscribeLocalEvent<SingularityComponent, ComponentGetState>(HandleSingularityState);
 
         // TODO: Figure out where all this coupling should be handled.
@@ -76,6 +75,11 @@ public sealed class SingularitySystem : SharedSingularitySystem
         var query = EntityQueryEnumerator<SingularityComponent>();
         while (query.MoveNext(out var uid, out var singularity))
         {
+            comp.EnergyDrain = Math.Clamp(singularity.Energy/60, 1, 20);
+            if(singularity.level > 4)
+            {
+                comp.EnergyDrain = 0;
+            }
             AdjustEnergy(uid, -singularity.EnergyDrain * frameTime, singularity: singularity);
         }
     }
@@ -262,26 +266,6 @@ public sealed class SingularitySystem : SharedSingularitySystem
             // Apply both the flat and percentage changes
             AdjustEnergy(args.EventHorizonUid, comp.Energy + percentageChange, singularity: singulo);
         }
-    }
-
-    /// <summary>
-    /// Updates the rate at which the singularities energy drains at when its level changes.
-    /// </summary>
-    /// <param name="uid">The entity UID of the singularity that changed in level.</param>
-    /// <param name="comp">The component of the singularity that changed in level.</param>
-    /// <param name="args">The event arguments.</param>
-    public void UpdateEnergyDrain(EntityUid uid, SingularityComponent comp, SingularityLevelChangedEvent args)
-    {
-        comp.EnergyDrain = args.NewValue switch
-        {
-            6 => 0,
-            5 => 0,
-            4 => 20,
-            3 => 10,
-            2 => 5,
-            1 => 1,
-            _ => 0
-        };
     }
 
     /// <summary>
