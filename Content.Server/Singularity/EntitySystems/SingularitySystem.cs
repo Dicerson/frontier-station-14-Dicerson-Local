@@ -75,11 +75,7 @@ public sealed class SingularitySystem : SharedSingularitySystem
         var query = EntityQueryEnumerator<SingularityComponent>();
         while (query.MoveNext(out var uid, out var singularity))
         {
-            comp.EnergyDrain = Math.Clamp(singularity.Energy/60, 1, 20);
-            if(singularity.level > 4)
-            {
-                comp.EnergyDrain = 0;
-            }
+            UpdateEnergyDrain(uid, singularity: singularity);
             AdjustEnergy(uid, -singularity.EnergyDrain * frameTime, singularity: singularity);
         }
     }
@@ -137,6 +133,23 @@ public sealed class SingularitySystem : SharedSingularitySystem
         || (!snapMax && newValue > max))
             return;
         SetEnergy(uid, MathHelper.Clamp(newValue, min, max), singularity);
+    }
+
+    /// <summary>
+    /// Updates the Energy drain per second of the Singularity.
+    /// </summary>
+    /// <param name="uid">The uid of the singularity to adjust the energy of. </param>
+    /// <param name="singularity">The state of the singularity to adjust the energy of.</param>
+    public void UpdateEnergyDrain(EntityUid uid, SingularityComponent? singularity = null)
+    {
+        if(!Resolve(uid, ref singularity))
+            return;
+        var newValue = Math.Clamp(singularity.Energy/60, 1, 20);
+        if(singularity.Energy > 2000)
+        {
+            newValue = 0;
+        }
+        singularity.EnergyDrain = newValue;
     }
 
 
